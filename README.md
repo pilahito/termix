@@ -7,6 +7,10 @@ Hecho desde cero con Electron + xterm.js + ssh2 — no contiene código de terce
 |---|---|
 | ![Inicio](docs/captura-inicio.png) | ![Sesión](docs/captura.png) |
 
+| SFTP | Túneles |
+|---|---|
+| ![SFTP](docs/sftp.png) | ![Túneles](docs/tuneles.png) |
+
 ## Qué hace (v0.2)
 
 - Lista de **hosts** con buscador, guardada en tu equipo (`~/.config/termix/hosts.json`).
