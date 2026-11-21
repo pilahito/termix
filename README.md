@@ -3,15 +3,18 @@
 Cliente **SSH de escritorio open source**, en español, sin cuentas ni nube.
 Hecho desde cero con Electron + xterm.js + ssh2 — no contiene código de terceros.
 
-![Termix conectado por SSH](docs/captura.png)
+| Inicio | Sesión SSH |
+|---|---|
+| ![Inicio](docs/captura-inicio.png) | ![Sesión](docs/captura.png) |
 
 ## Qué hace (v0.1)
 
-- Lista de **hosts** guardada en tu equipo (`~/.config/termix/hosts.json`).
+- Lista de **hosts** con buscador, guardada en tu equipo (`~/.config/termix/hosts.json`).
+- **Importar hosts de `~/.ssh/config`** con un botón (toma HostName, Port, User, IdentityFile).
 - **Pestañas** con terminal a pantalla completa (xterm.js).
 - Conexión SSH con **clave privada** (ed25519/rsa) o **contraseña**.
 - Redimensionado automático del terminal y del PTY remoto.
-- Interfaz en **español**, tema oscuro.
+- Interfaz en **español**, tema oscuro, barra de estado y diálogo *Acerca de*.
 - Cero telemetría, cero login.
 
 ## Instalación

@@ -11,32 +11,62 @@
   <aside class="barra">
     <div class="marca">
       <span class="logo">›_</span>
-      <span>Termix</span>
+      <div class="marca-texto">
+        <strong>Termix</strong>
+        <span>Cliente SSH</span>
+      </div>
     </div>
+
+    <div class="buscador">
+      <span class="lupa">⌕</span>
+      <input id="buscar" type="search" placeholder="Buscar host…" />
+    </div>
+
     <div class="titulo-seccion">
-      <span>Hosts</span>
-      <button id="btn-nuevo" title="Añadir host">+</button>
+      <span>HOSTS</span>
+      <span class="acciones-seccion">
+        <button id="btn-importar" title="Importar de ~/.ssh/config">⇩</button>
+        <button id="btn-nuevo" title="Nueva conexión">+</button>
+      </span>
     </div>
     <ul id="lista-hosts"></ul>
+
     <div class="pie">
-      <button id="btn-config" class="enlace">Abrir carpeta de configuración</button>
+      <button id="btn-config" class="enlace">⚙ Configuración</button>
+      <button id="btn-acerca" class="enlace">◍ Acerca de</button>
     </div>
   </aside>
 
   <main class="contenido">
-    <div class="pestanas" id="pestanas"></div>
+    <header class="cabecera">
+      <div class="pestanas" id="pestanas"></div>
+      <button id="btn-nueva-pestana" class="btn-mas" title="Nueva conexión">+</button>
+    </header>
+
     <div class="terminales" id="terminales">
-      <div class="bienvenida" id="bienvenida">
-        <h1>Termix</h1>
-        <p>Cliente SSH libre, sin cuentas ni nube. Todo se guarda en tu equipo.</p>
-        <p class="pista">Añade un host con <b>+</b> o elige uno de la izquierda.</p>
-      </div>
+      <section class="bienvenida" id="bienvenida">
+        <div class="hero-icono">›_</div>
+        <h1>Cliente SSH moderno</h1>
+        <p>Conecta con tus servidores desde un solo sitio. Sin cuentas, sin nube:<br />
+           todo se queda en tu equipo.</p>
+        <div class="hero-botones">
+          <button id="hero-nuevo" class="boton-principal">Nueva conexión</button>
+          <button id="hero-importar" class="boton-secundario">Importar ~/.ssh/config</button>
+        </div>
+        <p class="atajos">Consejo: pulsa un host de la izquierda o <kbd>Ctrl</kbd>+<kbd>N</kbd></p>
+      </section>
     </div>
+
+    <footer class="estado">
+      <span id="estado-texto">Listo</span>
+      <span id="estado-host" class="tenue"></span>
+    </footer>
   </main>
 
   <dialog id="dlg-host">
     <form method="dialog" id="form-host">
-      <h2 id="dlg-titulo">Nuevo host</h2>
+      <h2 id="dlg-titulo">Nueva conexión</h2>
+      <p class="ayuda">Los datos se guardan solo en tu equipo.</p>
       <label>Nombre <input name="nombre" required placeholder="solaris" /></label>
       <div class="fila">
         <label class="crece">Host / IP <input name="host" required placeholder="192.168.1.250" /></label>
@@ -51,13 +81,29 @@
           </select>
         </label>
       </div>
-      <label>Clave privada <span class="fila"><input name="keyPath" placeholder="~/.ssh/id_ed25519" /><button type="button" id="btn-clave">Elegir…</button></span></label>
+      <label>Clave privada
+        <span class="fila">
+          <input name="keyPath" placeholder="~/.ssh/id_ed25519" />
+          <button type="button" id="btn-clave" class="boton-secundario">Elegir…</button>
+        </span>
+      </label>
       <label>Contraseña / passphrase <input name="password" type="password" placeholder="(si hace falta)" /></label>
       <menu>
         <button value="cancelar">Cancelar</button>
-        <button id="btn-guardar" value="guardar" class="principal">Guardar</button>
+        <button id="btn-guardar" value="guardar" class="boton-principal">Guardar y conectar</button>
       </menu>
     </form>
+  </dialog>
+
+  <dialog id="dlg-acerca">
+    <div class="acerca">
+      <div class="hero-icono pequeno">›_</div>
+      <h2>Termix <span class="version">0.1.0</span></h2>
+      <p>Cliente SSH open source, en español y sin cuentas.</p>
+      <p class="tenue">Electron + xterm.js + ssh2 · Licencia MIT</p>
+      <p><a id="enlace-repo" href="#">github.com/pilahito/termix</a></p>
+      <button id="cerrar-acerca" class="boton-principal">Cerrar</button>
+    </div>
   </dialog>
 
   <script src="assets/xterm.js"></script>

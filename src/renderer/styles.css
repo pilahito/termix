@@ -1,102 +1,188 @@
+/* Termix — tema oscuro estilo cliente SSH moderno. */
 :root {
-  --fondo: #0f1115;
-  --panel: #161a21;
-  --borde: #242a34;
-  --texto: #e6e9ef;
-  --tenue: #8b93a1;
-  --acento: #2f81f7;
-  --verde: #3fb950;
+  --fondo: #0a0d14;
+  --fondo-2: #0e1320;
+  --panel: #111726;
+  --panel-2: #161d2f;
+  --borde: #1e2637;
+  --texto: #e7ebf3;
+  --tenue: #7d879b;
+  --acento: #3b82f6;
+  --acento-2: #2563eb;
+  --verde: #34d399;
+  --rojo: #f87171;
+  --radio: 10px;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  background: var(--fondo);
+  grid-template-columns: 288px 1fr;
+  background: radial-gradient(1200px 700px at 20% -10%, #101a2e 0%, var(--fondo) 55%);
   color: var(--texto);
-  font: 14px/1.4 system-ui, sans-serif;
+  font: 14px/1.45 "Inter", system-ui, -apple-system, sans-serif;
   overflow: hidden;
 }
+
+/* ── barra lateral ─────────────────────────────────────────────── */
 .barra {
-  display: flex; flex-direction: column;
-  background: var(--panel);
+  display: flex; flex-direction: column; min-height: 0;
+  background: linear-gradient(180deg, var(--panel) 0%, var(--fondo-2) 100%);
   border-right: 1px solid var(--borde);
 }
-.marca {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 16px; font-weight: 700; font-size: 15px;
-  border-bottom: 1px solid var(--borde);
-}
+.marca { display: flex; align-items: center; gap: 12px; padding: 18px 18px 14px; }
 .logo {
-  display: inline-grid; place-items: center;
-  width: 26px; height: 26px; border-radius: 7px;
-  background: var(--acento); color: #fff; font-family: monospace; font-size: 13px;
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--acento), var(--acento-2));
+  color: #fff; font: 700 15px ui-monospace, monospace;
+  box-shadow: 0 6px 18px -6px var(--acento);
 }
+.marca-texto { display: flex; flex-direction: column; line-height: 1.2; }
+.marca-texto strong { font-size: 15px; letter-spacing: .2px; }
+.marca-texto span { color: var(--tenue); font-size: 11.5px; }
+
+.buscador {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 14px 12px; padding: 8px 10px;
+  background: #0b101b; border: 1px solid var(--borde); border-radius: var(--radio);
+}
+.buscador .lupa { color: var(--tenue); }
+.buscador input {
+  flex: 1; min-width: 0; background: none; border: 0; outline: 0;
+  color: var(--texto); font: inherit;
+}
+
 .titulo-seccion {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px 6px; color: var(--tenue); font-size: 12px;
-  text-transform: uppercase; letter-spacing: .06em;
+  padding: 4px 18px 6px; color: var(--tenue);
+  font-size: 11px; letter-spacing: .1em;
 }
-.titulo-seccion button {
-  width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--borde);
-  background: transparent; color: var(--texto); cursor: pointer; font-size: 15px; line-height: 1;
+.acciones-seccion { display: flex; gap: 4px; }
+.acciones-seccion button {
+  width: 24px; height: 24px; border-radius: 7px; border: 1px solid var(--borde);
+  background: #0b101b; color: var(--texto); cursor: pointer; font-size: 14px; line-height: 1;
 }
-.titulo-seccion button:hover { background: #202633; }
-#lista-hosts { list-style: none; margin: 0; padding: 0 8px; overflow-y: auto; flex: 1; }
-#lista-hosts li {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px; border-radius: 8px; cursor: pointer;
-}
-#lista-hosts li:hover { background: #202633; }
-#lista-hosts li .nombre { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#lista-hosts li .destino { color: var(--tenue); font-size: 12px; }
-#lista-hosts li .borrar { opacity: 0; border: 0; background: none; color: var(--tenue); cursor: pointer; }
-#lista-hosts li:hover .borrar { opacity: 1; }
-.pie { padding: 10px; border-top: 1px solid var(--borde); }
-.enlace { background: none; border: 0; color: var(--tenue); cursor: pointer; padding: 6px; font-size: 12px; }
+.acciones-seccion button:hover { border-color: var(--acento); color: var(--acento); }
 
-.contenido { display: flex; flex-direction: column; min-width: 0; }
-.pestanas { display: flex; gap: 4px; padding: 8px 8px 0; min-height: 38px; }
-.pestana {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 12px; border-radius: 8px 8px 0 0;
-  background: #1b2029; border: 1px solid var(--borde); border-bottom: 0;
-  color: var(--tenue); cursor: pointer; font-size: 13px;
+#lista-hosts { list-style: none; margin: 0; padding: 0 10px; overflow-y: auto; flex: 1; }
+#lista-hosts li {
+  display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center;
+  padding: 9px 10px; border-radius: var(--radio); cursor: pointer;
+  border: 1px solid transparent;
 }
-.pestana.activa { background: #202633; color: var(--texto); }
+#lista-hosts li:hover { background: #131a28; border-color: var(--borde); }
+#lista-hosts li .avatar {
+  width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+  background: #1b2438; color: #9fb4d8; font-weight: 700; font-size: 13px;
+}
+#lista-hosts li .datos { min-width: 0; display: flex; flex-direction: column; }
+#lista-hosts li .nombre { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#lista-hosts li .destino { color: var(--tenue); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#lista-hosts li .borrar {
+  opacity: 0; border: 0; background: none; color: var(--tenue); cursor: pointer; font-size: 15px;
+}
+#lista-hosts li:hover .borrar { opacity: 1; }
+#lista-hosts li .borrar:hover { color: var(--rojo); }
+.vacio-lista { color: var(--tenue); font-size: 12.5px; padding: 10px 14px; }
+
+.pie { display: flex; gap: 4px; padding: 10px 12px; border-top: 1px solid var(--borde); }
+.enlace {
+  flex: 1; background: none; border: 1px solid transparent; color: var(--tenue);
+  cursor: pointer; padding: 7px; border-radius: 8px; font-size: 12px;
+}
+.enlace:hover { color: var(--texto); background: #131a28; }
+
+/* ── zona principal ─────────────────────────────────────────────── */
+.contenido { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.cabecera {
+  display: flex; align-items: end; gap: 6px;
+  padding: 8px 10px 0; min-height: 44px; border-bottom: 1px solid var(--borde);
+  background: #0b0f18;
+}
+.pestanas { display: flex; gap: 6px; flex: 1; overflow-x: auto; }
+.pestana {
+  display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+  border-radius: 9px 9px 0 0; background: #101725; border: 1px solid var(--borde);
+  border-bottom: 0; color: var(--tenue); cursor: pointer; font-size: 13px; white-space: nowrap;
+}
+.pestana.activa { background: var(--panel-2); color: var(--texto); border-color: #26314a; }
 .pestana .punto { width: 7px; height: 7px; border-radius: 50%; background: var(--verde); }
-.pestana .punto.malo { background: #f85149; }
+.pestana .punto.malo { background: var(--rojo); }
 .pestana .cerrar { border: 0; background: none; color: var(--tenue); cursor: pointer; }
-.terminales { position: relative; flex: 1 1 auto; min-height: 200px; height: 100%; background: #0b0e13; border-top: 1px solid var(--borde); }
-.panel-term { position: absolute; inset: 0; padding: 8px; display: none; }
+.pestana .cerrar:hover { color: var(--rojo); }
+.btn-mas {
+  margin-bottom: 6px; width: 30px; height: 30px; border-radius: 8px;
+  border: 1px solid var(--borde); background: #101725; color: var(--texto); cursor: pointer;
+}
+.btn-mas:hover { border-color: var(--acento); color: var(--acento); }
+
+.terminales { position: relative; flex: 1 1 auto; min-height: 0; background: #06080d; }
+.panel-term { position: absolute; inset: 0; padding: 10px 12px; display: none; }
 .panel-term.visible { display: block; }
 .panel-term .xterm { width: 100%; height: 100%; }
+
+/* bienvenida */
 .bienvenida {
   position: absolute; inset: 0; display: grid; place-content: center;
-  text-align: center; gap: 6px; color: var(--tenue);
+  justify-items: center; text-align: center; gap: 10px; padding: 24px;
 }
-.bienvenida h1 { color: var(--texto); margin: 0 0 4px; font-size: 34px; letter-spacing: -0.02em; }
-.pista { font-size: 13px; }
+.hero-icono {
+  display: grid; place-items: center; width: 92px; height: 92px; border-radius: 26px;
+  background: linear-gradient(145deg, #14305c, #0d1a30);
+  border: 1px solid #1d3a6b; color: var(--acento);
+  font: 700 34px ui-monospace, monospace;
+  box-shadow: 0 26px 60px -30px var(--acento);
+}
+.hero-icono.pequeno { width: 56px; height: 56px; border-radius: 16px; font-size: 20px; }
+.bienvenida h1 { margin: 6px 0 0; font-size: 34px; letter-spacing: -0.02em; }
+.bienvenida p { margin: 0; color: var(--tenue); max-width: 520px; }
+.hero-botones { display: flex; gap: 10px; margin-top: 10px; }
+.boton-principal, .boton-secundario {
+  padding: 10px 18px; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 600;
+  border: 1px solid transparent;
+}
+.boton-principal { background: linear-gradient(180deg, var(--acento), var(--acento-2)); color: #fff; }
+.boton-principal:hover { filter: brightness(1.08); }
+.boton-secundario { background: #121a2a; border-color: var(--borde); color: var(--texto); }
+.boton-secundario:hover { border-color: var(--acento); }
+.atajos { font-size: 12px; margin-top: 8px !important; }
+kbd {
+  background: #121a2a; border: 1px solid var(--borde); border-radius: 5px;
+  padding: 1px 5px; font: 11px ui-monospace, monospace; color: var(--texto);
+}
 
+/* pie de estado */
+.estado {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 14px; background: #0b0f18; border-top: 1px solid var(--borde);
+  color: var(--tenue); font-size: 11.5px; min-height: 26px;
+}
+.tenue { color: var(--tenue); }
+
+/* ── diálogos ──────────────────────────────────────────────────── */
 dialog {
-  border: 1px solid var(--borde); border-radius: 14px;
-  background: var(--panel); color: var(--texto); padding: 0; width: 480px;
+  border: 1px solid #24304a; border-radius: 16px; background: var(--panel);
+  color: var(--texto); padding: 0; width: 520px;
+  box-shadow: 0 40px 90px -30px #000;
 }
-dialog::backdrop { background: #0009; }
-form { display: flex; flex-direction: column; gap: 12px; padding: 20px; }
-form h2 { margin: 0 0 4px; font-size: 18px; }
-label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--tenue); }
+dialog::backdrop { background: #04070cd9; backdrop-filter: blur(3px); }
+form { display: flex; flex-direction: column; gap: 12px; padding: 22px; }
+form h2 { margin: 0; font-size: 19px; }
+.ayuda { margin: -6px 0 4px; color: var(--tenue); font-size: 12.5px; }
+label { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--tenue); }
 input, select {
-  background: #0f1319; border: 1px solid var(--borde); border-radius: 8px;
-  color: var(--texto); padding: 8px 10px; font: inherit;
+  background: #0a0f19; border: 1px solid var(--borde); border-radius: 9px;
+  color: var(--texto); padding: 9px 11px; font: inherit; outline: none;
 }
+input:focus, select:focus { border-color: var(--acento); }
 .fila { display: flex; gap: 10px; align-items: end; }
 .fila label { flex: 1; }
 .fila .crece { flex: 1; }
-.fila .corto { width: 96px; }
-menu { display: flex; justify-content: end; gap: 8px; margin: 6px 0 0; padding: 0; }
-menu button {
-  padding: 8px 14px; border-radius: 8px; border: 1px solid var(--borde);
-  background: transparent; color: var(--texto); cursor: pointer;
-}
-menu button.principal { background: var(--acento); border-color: var(--acento); color: #fff; }
+.fila .corto { width: 100px; }
+menu { display: flex; justify-content: end; gap: 8px; margin: 8px 0 0; padding: 0; }
+menu button { padding: 9px 16px; border-radius: 9px; border: 1px solid var(--borde); background: #121a2a; color: var(--texto); cursor: pointer; }
+menu button.boton-principal { border: 0; }
+.acerca { display: flex; flex-direction: column; gap: 8px; align-items: center; padding: 26px; text-align: center; }
+.acerca h2 { margin: 6px 0 0; }
+.acerca .version { color: var(--tenue); font-size: 12px; font-weight: 400; }
+.acerca a { color: var(--acento); text-decoration: none; }

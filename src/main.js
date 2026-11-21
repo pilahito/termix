@@ -28,8 +28,8 @@ function guardarHosts(lista) {
 
 function crearVentana() {
   const win = new BrowserWindow({
-    width: 1180,
-    height: 780,
+    width: 1480,
+    height: 900,
     minWidth: 820,
     minHeight: 520,
     title: "Termix",
@@ -131,6 +131,32 @@ ipcMain.on("ssh:close", (_e, id) => {
   const s = sesiones.get(id);
   try { s?.stream?.close(); s?.client?.end(); } catch {}
   sesiones.delete(id);
+});
+
+// ── importar ~/.ssh/config ─────────────────────────────────────────────────
+ipcMain.handle("sshconfig:import", () => {
+  const ruta = path.join(os.homedir(), ".ssh", "config");
+  if (!fs.existsSync(ruta)) return [];
+  const salida = [];
+  let actual = null;
+  for (const linea of fs.readFileSync(ruta, "utf-8").split("\n")) {
+    const limpia = linea.trim();
+    if (!limpia || limpia.startsWith("#")) continue;
+    const [clave, ...resto] = limpia.split(/\s+/);
+    const valor = resto.join(" ");
+    if (/^host$/i.test(clave)) {
+      if (actual && actual.host && !/[*?]/.test(actual.host)) salida.push(actual);
+      actual = { nombre: valor, host: "", port: "22", user: os.userInfo().username, auth: "key", keyPath: "~/.ssh/id_ed25519" };
+    } else if (actual) {
+      if (/^hostname$/i.test(clave)) actual.host = valor;
+      else if (/^port$/i.test(clave)) actual.port = valor;
+      else if (/^user$/i.test(clave)) actual.user = valor;
+      else if (/^identityfile$/i.test(clave)) actual.keyPath = valor.replace(/^"|"$/g, "");
+    }
+  }
+  if (actual && actual.host && !/[*?]/.test(actual.host)) salida.push(actual);
+  // los hosts sin HostName usan el propio nombre como destino
+  return salida.map((h) => ({ ...h, host: h.host || h.nombre }));
 });
 
 // ── utilidades de escritorio ───────────────────────────────────────────────
