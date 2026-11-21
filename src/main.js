@@ -6,6 +6,7 @@ const path = require("node:path");
 const fs = require("node:fs");
 const os = require("node:os");
 const { Client } = require("ssh2");
+const net = require("node:net");
 
 const CONFIG_DIR = path.join(os.homedir(), ".config", "termix");
 const HOSTS_FILE = path.join(CONFIG_DIR, "hosts.json");
@@ -131,6 +132,179 @@ ipcMain.on("ssh:close", (_e, id) => {
   const s = sesiones.get(id);
   try { s?.stream?.close(); s?.client?.end(); } catch {}
   sesiones.delete(id);
+});
+
+// ── SFTP ───────────────────────────────────────────────────────────────────
+function sesionSFTP(id) {
+  const sesion = sesiones.get(id);
+  if (!sesion) return null;
+  if (sesion.sftp) return sesion.sftp;
+  return null;
+}
+
+ipcMain.handle("sftp:list", async (_e, id, ruta) => {
+  const s = sesiones.get(id);
+  if (!s?.client) return { ok: false, error: "sin conexión" };
+  const destino = ruta || ".";
+  return await new Promise((resolve) => {
+    s.client.sftp((err, sftp) => {
+      if (err) return resolve({ ok: false, error: err.message });
+      sftp.readdir(destino, (err2, lista) => {
+        if (err2) return resolve({ ok: false, error: err2.message });
+        const entradas = lista
+          .map((e) => ({
+            nombre: e.filename,
+            directorio: e.attrs.isDirectory(),
+            tamano: e.attrs.size,
+            mtime: e.attrs.mtime,
+            permisos: (e.attrs.mode & 0o777).toString(8),
+          }))
+          .filter((e) => e.nombre !== "." && e.nombre !== "..")
+          .sort((a, b) => Number(b.directorio) - Number(a.directorio) || a.nombre.localeCompare(b.nombre));
+        sftp.realpath(destino, (_err3, real) => resolve({ ok: true, ruta: real || destino, entradas }));
+      });
+    });
+  });
+});
+
+ipcMain.handle("sftp:inicio", async (_e, id) =>
+  await new Promise((resolve) => {
+    const s = sesiones.get(id);
+    if (!s?.client) return resolve("~");
+    s.client.sftp((err, sftp) => {
+      if (err) return resolve("~");
+      sftp.realpath(".", (_e2, real) => resolve(real || "~"));
+    });
+  }));
+
+ipcMain.handle("sftp:descargar", async (event, id, rutaRemota) => {
+  const s = sesiones.get(id);
+  if (!s?.client) return { ok: false, error: "sin conexión" };
+  const r = await dialog.showSaveDialog({
+    title: "Guardar archivo",
+    defaultPath: path.join(os.homedir(), "Descargas", path.basename(rutaRemota)),
+  });
+  if (r.canceled || !r.filePath) return { ok: false, cancelado: true };
+  return await new Promise((resolve) => {
+    s.client.sftp((err, sftp) => {
+      if (err) return resolve({ ok: false, error: err.message });
+      sftp.fastGet(rutaRemota, r.filePath, (err2) => {
+        resolve(err2 ? { ok: false, error: err2.message } : { ok: true, ruta: r.filePath });
+      });
+    });
+  });
+});
+
+ipcMain.handle("sftp:subir", async (_e, id, carpetaRemota) => {
+  const s = sesiones.get(id);
+  if (!s?.client) return { ok: false, error: "sin conexión" };
+  const r = await dialog.showOpenDialog({ title: "Subir archivo(s)", properties: ["openFile", "multiSelections"] });
+  if (r.canceled || !r.filePaths.length) return { ok: false, cancelado: true };
+  return await new Promise((resolve) => {
+    s.client.sftp((err, sftp) => {
+      if (err) return resolve({ ok: false, error: err.message });
+      let pendientes = r.filePaths.length;
+      const fallos = [];
+      for (const local of r.filePaths) {
+        const destino = path.posix.join(carpetaRemota, path.basename(local));
+        sftp.fastPut(local, destino, (err2) => {
+          if (err2) fallos.push(`${path.basename(local)}: ${err2.message}`);
+          if (--pendientes === 0) resolve({ ok: fallos.length === 0, fallos });
+        });
+      }
+    });
+  });
+});
+
+ipcMain.handle("sftp:accion", async (_e, id, accion, ruta, nuevo) => {
+  const s = sesiones.get(id);
+  if (!s?.client) return { ok: false, error: "sin conexión" };
+  return await new Promise((resolve) => {
+    s.client.sftp((err, sftp) => {
+      if (err) return resolve({ ok: false, error: err.message });
+      const hecho = (e) => resolve(e ? { ok: false, error: e.message } : { ok: true });
+      if (accion === "mkdir") sftp.mkdir(ruta, hecho);
+      else if (accion === "borrar") sftp.unlink(ruta, hecho);
+      else if (accion === "rmdir") sftp.rmdir(ruta, hecho);
+      else if (accion === "renombrar") sftp.rename(ruta, nuevo, hecho);
+      else resolve({ ok: false, error: "acción desconocida" });
+    });
+  });
+});
+
+// ── reenvío de puertos local (-L) ──────────────────────────────────────────
+ipcMain.handle("forward:abrir", async (_e, id, regla) => {
+  const s = sesiones.get(id);
+  if (!s?.client) return { ok: false, error: "sin conexión" };
+  if (!net) return { ok: false, error: "net no disponible" };
+  return await new Promise((resolve) => {
+    const servidor = net.createServer((socket) => {
+      s.client.forwardOut("127.0.0.1", socket.remotePort || 0, regla.destino, regla.puertoDestino, (err, flujo) => {
+        if (err) { socket.destroy(); return; }
+        socket.pipe(flujo).pipe(socket);
+        flujo.on("close", () => socket.destroy());
+        socket.on("error", () => flujo.destroy());
+      });
+    });
+    servidor.on("error", (e) => resolve({ ok: false, error: e.message }));
+    servidor.listen(regla.puertoLocal, "127.0.0.1", () => {
+      s.forwards = s.forwards || [];
+      s.forwards.push({ ...regla, servidor, activo: true });
+      resolve({ ok: true, puerto: regla.puertoLocal });
+    });
+  });
+});
+
+ipcMain.handle("forward:cerrar", async (_e, id, puertoLocal) => {
+  const s = sesiones.get(id);
+  if (!s?.forwards) return { ok: false };
+  const i = s.forwards.findIndex((f) => f.puertoLocal === puertoLocal);
+  if (i >= 0) {
+    try { s.forwards[i].servidor.close(); } catch {}
+    s.forwards.splice(i, 1);
+  }
+  return { ok: true };
+});
+
+ipcMain.handle("forward:listar", (_e, id) => {
+  const s = sesiones.get(id);
+  return (s?.forwards || []).map((f) => ({ puertoLocal: f.puertoLocal, destino: f.destino, puertoDestino: f.puertoDestino, activo: f.activo }));
+});
+
+// ── shell local (pty con "script") ─────────────────────────────────────────
+ipcMain.handle("local:abrir", async (event, id) => {
+  const { spawn } = require("node:child_process");
+  const enviar = (datos) => { if (!event.sender.isDestroyed()) event.sender.send(`ssh:data:${id}`, datos); };
+  const hijo = spawn("script", ["-qfc", process.env.SHELL || "/bin/bash", "/dev/null"], {
+    env: { ...process.env, TERM: "xterm-256color" },
+  });
+  sesiones.set(id, { local: hijo, win: event.sender });
+  hijo.stdout.on("data", (d) => enviar(d.toString("utf8")));
+  hijo.stderr.on("data", (d) => enviar(d.toString("utf8")));
+  hijo.on("close", () => {
+    if (!event.sender.isDestroyed()) event.sender.send(`ssh:exit:${id}`);
+    sesiones.delete(id);
+  });
+  return { ok: true, proceso: hijo.pid };
+});
+
+ipcMain.on("local:input", (_e, id, datos) => {
+  try { sesiones.get(id)?.local?.stdin?.write(datos); } catch {}
+});
+
+// ── snippets ───────────────────────────────────────────────────────────────
+const SNIPPETS = path.join(CONFIG_DIR, "snippets.json");
+ipcMain.handle("snippets:load", () => {
+  try { return JSON.parse(fs.readFileSync(SNIPPETS, "utf-8")); } catch { return []; }
+});
+ipcMain.handle("snippets:save", (_e, lista) => {
+  fs.mkdirSync(CONFIG_DIR, { recursive: true });
+  fs.writeFileSync(SNIPPETS, JSON.stringify(lista, null, 2));
+  return true;
+});
+ipcMain.on("snippets:enviar", (_e, id, texto) => {
+  const s = sesiones.get(id);
+  try { s?.stream ? s.stream.write(texto) : s?.local?.stdin?.write(texto); } catch {}
 });
 
 // ── importar ~/.ssh/config ─────────────────────────────────────────────────

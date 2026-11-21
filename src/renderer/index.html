@@ -31,8 +31,16 @@
     </div>
     <ul id="lista-hosts"></ul>
 
+    <div class="titulo-seccion">
+      <span>SNIPPETS</span>
+      <span class="acciones-seccion">
+        <button id="btn-snippet-nuevo" title="Nuevo snippet">+</button>
+      </span>
+    </div>
+    <ul id="lista-snippets"></ul>
+
     <div class="pie">
-      <button id="btn-config" class="enlace">⚙ Configuración</button>
+      <button id="btn-local" class="enlace">▣ Terminal local</button>
       <button id="btn-acerca" class="enlace">◍ Acerca de</button>
     </div>
   </aside>
@@ -40,21 +48,43 @@
   <main class="contenido">
     <header class="cabecera">
       <div class="pestanas" id="pestanas"></div>
-      <button id="btn-nueva-pestana" class="btn-mas" title="Nueva conexión">+</button>
+      <div class="acciones-cabecera">
+        <button id="btn-sftp" class="btn-mas" title="Archivos (SFTP)">🗀</button>
+        <button id="btn-tuneles" class="btn-mas" title="Túneles de puertos">⇄</button>
+        <button id="btn-nueva-pestana" class="btn-mas" title="Nueva conexión">+</button>
+      </div>
     </header>
 
-    <div class="terminales" id="terminales">
-      <section class="bienvenida" id="bienvenida">
-        <div class="hero-icono">›_</div>
-        <h1>Cliente SSH moderno</h1>
-        <p>Conecta con tus servidores desde un solo sitio. Sin cuentas, sin nube:<br />
-           todo se queda en tu equipo.</p>
-        <div class="hero-botones">
-          <button id="hero-nuevo" class="boton-principal">Nueva conexión</button>
-          <button id="hero-importar" class="boton-secundario">Importar ~/.ssh/config</button>
+    <div class="cuerpo">
+      <div class="terminales" id="terminales">
+        <section class="bienvenida" id="bienvenida">
+          <div class="hero-icono">›_</div>
+          <h1>Cliente SSH moderno</h1>
+          <p>Conecta con tus servidores desde un solo sitio. Sin cuentas, sin nube:<br />
+             todo se queda en tu equipo.</p>
+          <div class="hero-botones">
+            <button id="hero-nuevo" class="boton-principal">Nueva conexión</button>
+            <button id="hero-importar" class="boton-secundario">Importar ~/.ssh/config</button>
+          </div>
+          <p class="atajos">Consejo: pulsa un host de la izquierda o <kbd>Ctrl</kbd>+<kbd>N</kbd></p>
+        </section>
+      </div>
+
+      <aside class="panel-sftp" id="panel-sftp">
+        <div class="sftp-cabecera">
+          <strong>Archivos</strong>
+          <input id="sftp-ruta" class="sftp-ruta" spellcheck="false" />
+          <button id="sftp-cerrar" class="cerrar-panel" title="Cerrar">×</button>
         </div>
-        <p class="atajos">Consejo: pulsa un host de la izquierda o <kbd>Ctrl</kbd>+<kbd>N</kbd></p>
-      </section>
+        <div class="sftp-acciones">
+          <button id="sftp-arriba" title="Subir un nivel">↑</button>
+          <button id="sftp-recargar" title="Recargar">⟳</button>
+          <button id="sftp-subir" title="Subir archivo(s)">⤒ Subir</button>
+          <button id="sftp-carpeta" title="Nueva carpeta">+ Carpeta</button>
+        </div>
+        <ul id="sftp-lista" class="sftp-lista"></ul>
+        <div class="sftp-pie" id="sftp-estado">—</div>
+      </aside>
     </div>
 
     <footer class="estado">
@@ -95,10 +125,40 @@
     </form>
   </dialog>
 
+  <dialog id="dlg-snippet">
+    <form method="dialog" id="form-snippet">
+      <h2>Nuevo snippet</h2>
+      <p class="ayuda">Se envía al terminal de la pestaña activa.</p>
+      <label>Nombre <input name="nombre" required placeholder="Ver logs de nginx" /></label>
+      <label>Comando
+        <textarea name="texto" rows="3" required placeholder="sudo journalctl -u nginx -n 100"></textarea>
+      </label>
+      <menu>
+        <button value="cancelar">Cancelar</button>
+        <button id="btn-snippet-guardar" value="guardar" class="boton-principal">Guardar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-tuneles">
+    <div class="tuneles">
+      <h2>Túneles de puertos</h2>
+      <p class="ayuda">Reenvío local: <code>127.0.0.1:puertoLocal</code> → destino por SSH.</p>
+      <ul id="lista-tuneles" class="lista-tuneles"></ul>
+      <form id="form-tunel" class="fila">
+        <label class="corto">Local <input name="puertoLocal" type="number" value="8080" required /></label>
+        <label class="crece">Destino <input name="destino" value="127.0.0.1" required /></label>
+        <label class="corto">Puerto <input name="puertoDestino" type="number" value="80" required /></label>
+        <button class="boton-principal" id="btn-tunel-crear">Crear</button>
+      </form>
+      <button id="cerrar-tuneles" class="boton-secundario">Cerrar</button>
+    </div>
+  </dialog>
+
   <dialog id="dlg-acerca">
     <div class="acerca">
       <div class="hero-icono pequeno">›_</div>
-      <h2>Termix <span class="version">0.1.0</span></h2>
+      <h2>Termix <span class="version">0.2.0</span></h2>
       <p>Cliente SSH open source, en español y sin cuentas.</p>
       <p class="tenue">Electron + xterm.js + ssh2 · Licencia MIT</p>
       <p><a id="enlace-repo" href="#">github.com/pilahito/termix</a></p>

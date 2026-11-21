@@ -1,7 +1,7 @@
 {
   "name": "termix",
   "productName": "Termix",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cliente SSH de escritorio, open source y en español",
   "main": "src/main.js",
   "license": "MIT",
