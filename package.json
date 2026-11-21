@@ -1,0 +1,32 @@
+{
+  "name": "termix",
+  "productName": "Termix",
+  "version": "0.1.0",
+  "description": "Cliente SSH de escritorio, open source y en español",
+  "main": "src/main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "./start.sh"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0"
+  },
+  "dependencies": {
+    "ssh2": "^1.16.0",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "ssh2",
+      "cpu-features"
+    ]
+  },
+  "allowScripts": {
+    "cpu-features@0.0.10": true,
+    "electron@38.8.6": true,
+    "ssh2@1.17.0": true
+  }
+}

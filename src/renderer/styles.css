@@ -1,0 +1,102 @@
+:root {
+  --fondo: #0f1115;
+  --panel: #161a21;
+  --borde: #242a34;
+  --texto: #e6e9ef;
+  --tenue: #8b93a1;
+  --acento: #2f81f7;
+  --verde: #3fb950;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  background: var(--fondo);
+  color: var(--texto);
+  font: 14px/1.4 system-ui, sans-serif;
+  overflow: hidden;
+}
+.barra {
+  display: flex; flex-direction: column;
+  background: var(--panel);
+  border-right: 1px solid var(--borde);
+}
+.marca {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; font-weight: 700; font-size: 15px;
+  border-bottom: 1px solid var(--borde);
+}
+.logo {
+  display: inline-grid; place-items: center;
+  width: 26px; height: 26px; border-radius: 7px;
+  background: var(--acento); color: #fff; font-family: monospace; font-size: 13px;
+}
+.titulo-seccion {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 6px; color: var(--tenue); font-size: 12px;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.titulo-seccion button {
+  width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--borde);
+  background: transparent; color: var(--texto); cursor: pointer; font-size: 15px; line-height: 1;
+}
+.titulo-seccion button:hover { background: #202633; }
+#lista-hosts { list-style: none; margin: 0; padding: 0 8px; overflow-y: auto; flex: 1; }
+#lista-hosts li {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 8px; cursor: pointer;
+}
+#lista-hosts li:hover { background: #202633; }
+#lista-hosts li .nombre { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#lista-hosts li .destino { color: var(--tenue); font-size: 12px; }
+#lista-hosts li .borrar { opacity: 0; border: 0; background: none; color: var(--tenue); cursor: pointer; }
+#lista-hosts li:hover .borrar { opacity: 1; }
+.pie { padding: 10px; border-top: 1px solid var(--borde); }
+.enlace { background: none; border: 0; color: var(--tenue); cursor: pointer; padding: 6px; font-size: 12px; }
+
+.contenido { display: flex; flex-direction: column; min-width: 0; }
+.pestanas { display: flex; gap: 4px; padding: 8px 8px 0; min-height: 38px; }
+.pestana {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 8px 8px 0 0;
+  background: #1b2029; border: 1px solid var(--borde); border-bottom: 0;
+  color: var(--tenue); cursor: pointer; font-size: 13px;
+}
+.pestana.activa { background: #202633; color: var(--texto); }
+.pestana .punto { width: 7px; height: 7px; border-radius: 50%; background: var(--verde); }
+.pestana .punto.malo { background: #f85149; }
+.pestana .cerrar { border: 0; background: none; color: var(--tenue); cursor: pointer; }
+.terminales { position: relative; flex: 1 1 auto; min-height: 200px; height: 100%; background: #0b0e13; border-top: 1px solid var(--borde); }
+.panel-term { position: absolute; inset: 0; padding: 8px; display: none; }
+.panel-term.visible { display: block; }
+.panel-term .xterm { width: 100%; height: 100%; }
+.bienvenida {
+  position: absolute; inset: 0; display: grid; place-content: center;
+  text-align: center; gap: 6px; color: var(--tenue);
+}
+.bienvenida h1 { color: var(--texto); margin: 0 0 4px; font-size: 34px; letter-spacing: -0.02em; }
+.pista { font-size: 13px; }
+
+dialog {
+  border: 1px solid var(--borde); border-radius: 14px;
+  background: var(--panel); color: var(--texto); padding: 0; width: 480px;
+}
+dialog::backdrop { background: #0009; }
+form { display: flex; flex-direction: column; gap: 12px; padding: 20px; }
+form h2 { margin: 0 0 4px; font-size: 18px; }
+label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--tenue); }
+input, select {
+  background: #0f1319; border: 1px solid var(--borde); border-radius: 8px;
+  color: var(--texto); padding: 8px 10px; font: inherit;
+}
+.fila { display: flex; gap: 10px; align-items: end; }
+.fila label { flex: 1; }
+.fila .crece { flex: 1; }
+.fila .corto { width: 96px; }
+menu { display: flex; justify-content: end; gap: 8px; margin: 6px 0 0; padding: 0; }
+menu button {
+  padding: 8px 14px; border-radius: 8px; border: 1px solid var(--borde);
+  background: transparent; color: var(--texto); cursor: pointer;
+}
+menu button.principal { background: var(--acento); border-color: var(--acento); color: #fff; }

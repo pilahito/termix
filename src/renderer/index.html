@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <title>Termix</title>
+  <link rel="stylesheet" href="assets/xterm.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <aside class="barra">
+    <div class="marca">
+      <span class="logo">›_</span>
+      <span>Termix</span>
+    </div>
+    <div class="titulo-seccion">
+      <span>Hosts</span>
+      <button id="btn-nuevo" title="Añadir host">+</button>
+    </div>
+    <ul id="lista-hosts"></ul>
+    <div class="pie">
+      <button id="btn-config" class="enlace">Abrir carpeta de configuración</button>
+    </div>
+  </aside>
+
+  <main class="contenido">
+    <div class="pestanas" id="pestanas"></div>
+    <div class="terminales" id="terminales">
+      <div class="bienvenida" id="bienvenida">
+        <h1>Termix</h1>
+        <p>Cliente SSH libre, sin cuentas ni nube. Todo se guarda en tu equipo.</p>
+        <p class="pista">Añade un host con <b>+</b> o elige uno de la izquierda.</p>
+      </div>
+    </div>
+  </main>
+
+  <dialog id="dlg-host">
+    <form method="dialog" id="form-host">
+      <h2 id="dlg-titulo">Nuevo host</h2>
+      <label>Nombre <input name="nombre" required placeholder="solaris" /></label>
+      <div class="fila">
+        <label class="crece">Host / IP <input name="host" required placeholder="192.168.1.250" /></label>
+        <label class="corto">Puerto <input name="port" type="number" value="22" /></label>
+      </div>
+      <div class="fila">
+        <label class="crece">Usuario <input name="user" required placeholder="david" /></label>
+        <label class="crece">Autenticación
+          <select name="auth">
+            <option value="key">Clave privada</option>
+            <option value="password">Contraseña</option>
+          </select>
+        </label>
+      </div>
+      <label>Clave privada <span class="fila"><input name="keyPath" placeholder="~/.ssh/id_ed25519" /><button type="button" id="btn-clave">Elegir…</button></span></label>
+      <label>Contraseña / passphrase <input name="password" type="password" placeholder="(si hace falta)" /></label>
+      <menu>
+        <button value="cancelar">Cancelar</button>
+        <button id="btn-guardar" value="guardar" class="principal">Guardar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="assets/xterm.js"></script>
+  <script src="assets/addon-fit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
