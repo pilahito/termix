@@ -383,7 +383,10 @@ function crearSesion({ titulo, host, tipo }) {
   $("#terminales").append(contenedor);
   $("#pestanas").append(pestana);
 
-  const sesion = { id, titulo, host, tipo, term, fit, contenedor, pestana, sftpRuta: null };
+  const sesion = {
+    id, titulo, host, tipo, term, fit, contenedor, pestana, sftpRuta: null,
+    linea: "", sugerencias: [], indiceSugerencia: -1,
+  };
   sesiones.push(sesion);
   activar(sesion);
   mostrarTerminal();
@@ -401,6 +404,7 @@ function crearSesion({ titulo, host, tipo }) {
   window.addEventListener("resize", () => fit.fit());
 
   term.onData((datos) => {
+    procesarTeclas(sesion, datos);
     if (sesion.tipo === "local") window.termix.escribirLocal(sesion.id, datos);
     else window.termix.escribir(sesion.id, datos);
   });
@@ -459,6 +463,83 @@ async function abrirTerminalLocal() {
   const sesion = crearSesion({ titulo: "Terminal local", host: null, tipo: "local" });
   const r = await window.termix.abrirLocal(sesion.id);
   if (!r?.ok) sesion.term.writeln(`\x1b[31mNo se pudo abrir la shell\x1b[0m`);
+}
+
+// ── autocompletado ─────────────────────────────────────────────────────────
+function popupSugerencias() { return $("#sugerencias"); }
+
+function pintarSugerencias(sesion) {
+  const caja = popupSugerencias();
+  if (!sesion.sugerencias.length) {
+    caja.hidden = true;
+    caja.innerHTML = "";
+    return;
+  }
+  caja.innerHTML = sesion.sugerencias
+    .map((s, i) => `<div class="sugerencia${i === sesion.indiceSugerencia ? " activa" : ""}">
+        <code>${esc(s.texto)}</code><span>${esc(s.ayuda || "")}</span></div>`)
+    .join("");
+  const r = sesion.contenedor.getBoundingClientRect ? sesion.contenedor.getBoundingClientRect() : null;
+  caja.hidden = false;
+  if (r) {
+    caja.style.left = `${Math.max(16, r.left + 12)}px`;
+    caja.style.bottom = `${Math.max(40, window.innerHeight - r.bottom + 28)}px`;
+  }
+}
+
+function cerrarSugerencias(sesion) {
+  sesion.sugerencias = [];
+  sesion.indiceSugerencia = -1;
+  pintarSugerencias(sesion);
+}
+
+function aceptarSugerencia(sesion, texto) {
+  const enviar = sesion.tipo === "local" ? window.termix.escribirLocal : window.termix.escribir;
+  // Ctrl-U borra la línea completa (readline) y se escribe la sugerencia entera.
+  enviar(sesion.id, "\x15" + texto);
+  sesion.linea = texto;
+  cerrarSugerencias(sesion);
+}
+
+function procesarTeclas(sesion, datos) {
+  // Enter / Ctrl-C: cierra y reinicia la línea
+  if (datos === "\r" || datos === "\n") {
+    if (sesion.sugerencias.length && sesion.indiceSugerencia >= 0) {
+      aceptarSugerencia(sesion, sesion.sugerencias[sesion.indiceSugerencia].texto);
+      return;
+    }
+    window.TermixCompletar.anotar(sesion.linea);
+    sesion.linea = "";
+    cerrarSugerencias(sesion);
+    return;
+  }
+  if (datos === "\x03") { sesion.linea = ""; cerrarSugerencias(sesion); return; }
+  if (datos === "\t") {
+    if (sesion.sugerencias.length) {
+      const i = sesion.indiceSugerencia < 0 ? 0 : sesion.indiceSugerencia;
+      aceptarSugerencia(sesion, sesion.sugerencias[i].texto);
+    }
+    return;
+  }
+  if (datos === "\x1b") { cerrarSugerencias(sesion); return; }
+  if (datos === "\x1b[A" || datos === "\x1b[B") {
+    if (!sesion.sugerencias.length) return;
+    const delta = datos === "\x1b[A" ? -1 : 1;
+    sesion.indiceSugerencia =
+      (sesion.indiceSugerencia + delta + sesion.sugerencias.length) % sesion.sugerencias.length;
+    pintarSugerencias(sesion);
+    return;
+  }
+  if (datos === "\x7f") {
+    sesion.linea = sesion.linea.slice(0, -1);
+  } else if (datos.length === 1 && datos >= " ") {
+    sesion.linea += datos;
+  } else {
+    return; // flechas, tabuladores, control: no tocan el texto
+  }
+  sesion.sugerencias = window.TermixCompletar.sugerencias(sesion.linea);
+  sesion.indiceSugerencia = sesion.sugerencias.length ? 0 : -1;
+  pintarSugerencias(sesion);
 }
 
 // ── SFTP ───────────────────────────────────────────────────────────────────

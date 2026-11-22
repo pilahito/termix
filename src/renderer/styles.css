@@ -266,3 +266,16 @@ hr { border: 0; border-top: 1px solid var(--borde); width: 100%; margin: 6px 0; 
 .pestana .candado { font-size: 11px; }
 .tarjeta-host { min-height: 62px; }
 .rejilla-hosts { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+
+/* ── autocompletado ───────────────────────────────────────────── */
+.sugerencias {
+  position: fixed; z-index: 50; min-width: 320px; max-width: 560px;
+  background: #111a2b; border: 1px solid #26314f; border-radius: 10px;
+  box-shadow: 0 24px 60px -24px #000; overflow: hidden; padding: 4px;
+}
+.sugerencias .sugerencia {
+  display: flex; align-items: center; gap: 10px; padding: 6px 9px; border-radius: 7px;
+}
+.sugerencias .sugerencia.activa { background: #1b2743; }
+.sugerencias .sugerencia code { color: #93c5fd; font: 12px ui-monospace, monospace; }
+.sugerencias .sugerencia span { color: var(--tenue); font-size: 11.5px; margin-left: auto; }
