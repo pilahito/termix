@@ -276,3 +276,13 @@ textarea:focus { border-color: var(--acento); }
 /* estados vacíos dentro de listas en rejilla */
 #lista-snippets .vacio-lista,
 #lista-hosts .vacio-lista { display: block; }
+
+/* ── vault y ajustes ───────────────────────────────────────────── */
+.vault { display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; padding: 24px; }
+.vault h2 { margin: 0; }
+.vault input { width: 100%; text-align: center; }
+.config { display: flex; flex-direction: column; gap: 10px; padding: 22px; width: 460px; }
+.config h2 { margin: 0 0 4px; }
+.config h3 { margin: 6px 0 0; font-size: 14px; }
+.config hr { border: 0; border-top: 1px solid var(--borde); margin: 8px 0; }
+.error { color: var(--rojo); font-size: 12px; min-height: 15px; margin: 0; }

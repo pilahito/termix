@@ -10,10 +10,60 @@ const net = require("node:net");
 
 const CONFIG_DIR = path.join(os.homedir(), ".config", "termix");
 const HOSTS_FILE = path.join(CONFIG_DIR, "hosts.json");
+const SNIPPETS_FILE = path.join(CONFIG_DIR, "snippets.json");
+const VAULT_FILE = path.join(CONFIG_DIR, "vault.json");
 
 const sesiones = new Map(); // id -> { client, stream, win }
+let vaultClave = null; // clave derivada en memoria mientras está desbloqueado
+
+// ── cifrado del vault (scrypt + AES-256-GCM) ───────────────────────────────
+const crypto = require("node:crypto");
+const SCRYPT = { N: 2 ** 15, r: 8, p: 1, maxmem: 128 * 1024 * 1024 };
+
+function derivar(clave, salt) {
+  return crypto.scryptSync(clave, salt, 32, SCRYPT);
+}
+
+function cifrar(datos, clave) {
+  const salt = crypto.randomBytes(16);
+  const iv = crypto.randomBytes(12);
+  const llave = derivar(clave, salt);
+  const cipher = crypto.createCipheriv("aes-256-gcm", llave, iv);
+  const cifrado = Buffer.concat([cipher.update(JSON.stringify(datos), "utf8"), cipher.final()]);
+  return {
+    v: 1, kdf: "scrypt", salt: salt.toString("base64"),
+    iv: iv.toString("base64"), tag: cipher.getAuthTag().toString("base64"),
+    datos: cifrado.toString("base64"),
+  };
+}
+
+function descifrar(doc, clave) {
+  const llave = derivar(clave, Buffer.from(doc.salt, "base64"));
+  const decipher = crypto.createDecipheriv("aes-256-gcm", llave, Buffer.from(doc.iv, "base64"));
+  decipher.setAuthTag(Buffer.from(doc.tag, "base64"));
+  const claro = Buffer.concat([decipher.update(Buffer.from(doc.datos, "base64")), decipher.final()]);
+  return JSON.parse(claro.toString("utf8"));
+}
+
+const vaultExiste = () => fs.existsSync(VAULT_FILE);
+
+function leerVaultAbierto() {
+  if (!vaultExiste() || !vaultClave) return null;
+  try { return descifrar(JSON.parse(fs.readFileSync(VAULT_FILE, "utf-8")), vaultClave); }
+  catch { return null; }
+}
+
+function escribirVault(datos) {
+  fs.mkdirSync(CONFIG_DIR, { recursive: true });
+  fs.writeFileSync(VAULT_FILE, JSON.stringify(cifrar(datos, vaultClave)));
+  try { fs.rmSync(HOSTS_FILE, { force: true }); } catch {}
+  try { fs.rmSync(SNIPPETS_FILE, { force: true }); } catch {}
+  return true;
+}
 
 function leerHosts() {
+  const vault = leerVaultAbierto();
+  if (vault) return vault.hosts || [];
   try {
     return JSON.parse(fs.readFileSync(HOSTS_FILE, "utf-8"));
   } catch {
@@ -22,6 +72,8 @@ function leerHosts() {
 }
 
 function guardarHosts(lista) {
+  const vault = leerVaultAbierto();
+  if (vault) return escribirVault({ ...vault, hosts: lista });
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
   fs.writeFileSync(HOSTS_FILE, JSON.stringify(lista, null, 2));
   return true;
@@ -133,6 +185,72 @@ ipcMain.on("ssh:close", (_e, id) => {
   try { s?.stream?.close(); s?.client?.end(); } catch {}
   sesiones.delete(id);
 });
+
+// ── vault cifrado ──────────────────────────────────────────────────────────
+ipcMain.handle("vault:estado", () => ({
+  existe: vaultExiste(),
+  desbloqueado: vaultClave !== null,
+}));
+
+ipcMain.handle("vault:desbloquear", (_e, clave) => {
+  if (!vaultExiste()) return { ok: false, error: "no hay vault" };
+  try {
+    const doc = JSON.parse(fs.readFileSync(VAULT_FILE, "utf-8"));
+    const datos = descifrar(doc, clave);
+    vaultClave = clave;
+    return { ok: true, hosts: datos.hosts || [], snippets: datos.snippets || [] };
+  } catch {
+    return { ok: false, error: "Contraseña incorrecta" };
+  }
+});
+
+ipcMain.handle("vault:activar", (_e, clave) => {
+  try {
+    const datos = { hosts: leerHosts(), snippets: ipcSnippets() };
+    vaultClave = clave;
+    escribirVault(datos);
+    return { ok: true };
+  } catch (error) {
+    vaultClave = null;
+    return { ok: false, error: error.message };
+  }
+});
+
+ipcMain.handle("vault:desactivar", (_e, clave) => {
+  try {
+    const doc = JSON.parse(fs.readFileSync(VAULT_FILE, "utf-8"));
+    const datos = descifrar(doc, clave);
+    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    fs.writeFileSync(HOSTS_FILE, JSON.stringify(datos.hosts || [], null, 2));
+    fs.writeFileSync(SNIPPETS_FILE, JSON.stringify(datos.snippets || [], null, 2));
+    fs.rmSync(VAULT_FILE, { force: true });
+    vaultClave = null;
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Contraseña incorrecta" };
+  }
+});
+
+ipcMain.handle("vault:cambiarClave", (_e, actual, nueva) => {
+  try {
+    const doc = JSON.parse(fs.readFileSync(VAULT_FILE, "utf-8"));
+    const datos = descifrar(doc, actual);
+    vaultClave = nueva;
+    escribirVault(datos);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Contraseña actual incorrecta" };
+  }
+});
+
+ipcMain.handle("vault:bloquear", () => {
+  vaultClave = null;
+  return true;
+});
+
+function ipcSnippets() {
+  try { return JSON.parse(fs.readFileSync(SNIPPETS_FILE, "utf-8")); } catch { return []; }
+}
 
 // ── SFTP ───────────────────────────────────────────────────────────────────
 function sesionSFTP(id) {
@@ -293,13 +411,16 @@ ipcMain.on("local:input", (_e, id, datos) => {
 });
 
 // ── snippets ───────────────────────────────────────────────────────────────
-const SNIPPETS = path.join(CONFIG_DIR, "snippets.json");
 ipcMain.handle("snippets:load", () => {
-  try { return JSON.parse(fs.readFileSync(SNIPPETS, "utf-8")); } catch { return []; }
+  const vault = leerVaultAbierto();
+  if (vault) return vault.snippets || [];
+  try { return JSON.parse(fs.readFileSync(SNIPPETS_FILE, "utf-8")); } catch { return []; }
 });
 ipcMain.handle("snippets:save", (_e, lista) => {
+  const vault = leerVaultAbierto();
+  if (vault) return escribirVault({ ...vault, snippets: lista });
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
-  fs.writeFileSync(SNIPPETS, JSON.stringify(lista, null, 2));
+  fs.writeFileSync(SNIPPETS_FILE, JSON.stringify(lista, null, 2));
   return true;
 });
 ipcMain.on("snippets:enviar", (_e, id, texto) => {

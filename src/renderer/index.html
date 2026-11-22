@@ -41,7 +41,7 @@
 
     <div class="pie">
       <button id="btn-local" class="enlace">▣ Terminal local</button>
-      <button id="btn-acerca" class="enlace">◍ Acerca de</button>
+      <button id="btn-config" class="enlace">⚙ Ajustes</button>
     </div>
   </aside>
 
@@ -152,6 +152,45 @@
         <button class="boton-principal" id="btn-tunel-crear">Crear</button>
       </form>
       <button id="cerrar-tuneles" class="boton-secundario">Cerrar</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-vault">
+    <form id="form-vault" class="vault">
+      <div class="hero-icono pequeno">🔒</div>
+      <h2>Vault bloqueado</h2>
+      <p class="ayuda">Introduce tu contraseña maestra para descifrar hosts y snippets.</p>
+      <input type="password" name="clave" placeholder="Contraseña maestra" autofocus required />
+      <p class="error" id="vault-error"></p>
+      <button class="boton-principal" id="btn-vault-abrir">Desbloquear</button>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-config">
+    <div class="config">
+      <h2>Ajustes</h2>
+      <section id="cfg-sin-vault">
+        <h3>Cifrado del vault</h3>
+        <p class="ayuda">Guarda hosts, contraseñas y snippets cifrados con AES-256-GCM y una contraseña maestra. Si la olvidas, no hay recuperación.</p>
+        <label>Contraseña maestra <input type="password" id="cfg-clave1" minlength="6" placeholder="mínimo 6 caracteres" /></label>
+        <label>Repite la contraseña <input type="password" id="cfg-clave2" minlength="6" /></label>
+        <p class="error" id="cfg-error"></p>
+        <button class="boton-principal" id="btn-vault-crear">Cifrar mis datos</button>
+      </section>
+      <section id="cfg-con-vault" hidden>
+        <h3>Cifrado activo ✓</h3>
+        <p class="ayuda">Tus datos están cifrados en <code>~/.config/termix/vault.json</code>.</p>
+        <label>Contraseña actual <input type="password" id="cfg-actual" /></label>
+        <label>Contraseña nueva <input type="password" id="cfg-nueva" minlength="6" /></label>
+        <p class="error" id="cfg-error2"></p>
+        <div class="fila">
+          <button class="boton-secundario" id="btn-vault-cambiar">Cambiar contraseña</button>
+          <button class="boton-secundario" id="btn-vault-quitar">Quitar cifrado</button>
+        </div>
+      </section>
+      <hr />
+      <button class="boton-secundario" id="btn-abrir-carpeta">Abrir carpeta de configuración</button>
+      <button class="boton-principal" id="cerrar-config">Cerrar</button>
     </div>
   </dialog>
 

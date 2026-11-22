@@ -36,6 +36,14 @@ contextBridge.exposeInMainWorld("termix", {
   snippetsGuardar: (lista) => ipcRenderer.invoke("snippets:save", lista),
   snippetEnviar: (id, texto) => ipcRenderer.send("snippets:enviar", id, texto),
 
+  // vault cifrado
+  vaultEstado: () => ipcRenderer.invoke("vault:estado"),
+  vaultDesbloquear: (clave) => ipcRenderer.invoke("vault:desbloquear", clave),
+  vaultActivar: (clave) => ipcRenderer.invoke("vault:activar", clave),
+  vaultDesactivar: (clave) => ipcRenderer.invoke("vault:desactivar", clave),
+  vaultCambiarClave: (actual, nueva) => ipcRenderer.invoke("vault:cambiarClave", actual, nueva),
+  vaultBloquear: () => ipcRenderer.invoke("vault:bloquear"),
+
   // varios
   elegirClave: () => ipcRenderer.invoke("dialog:key"),
   abrirConfig: () => ipcRenderer.invoke("shell:abrirConfig"),

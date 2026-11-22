@@ -26,14 +26,7 @@ function estado(texto, host) {
 
 // ── arranque ───────────────────────────────────────────────────────────────
 (async function init() {
-  [hosts, snippets] = await Promise.all([
-    window.termix.cargarHosts(),
-    window.termix.snippetsCargar(),
-  ]);
-  hosts = hosts || [];
-  snippets = snippets || [];
-  pintarHosts();
-  pintarSnippets();
+  await arrancarDatos();
 
   $("#buscar").addEventListener("input", (e) => {
     filtro = e.target.value.trim().toLowerCase();
@@ -51,6 +44,96 @@ function estado(texto, host) {
     }
   });
 })();
+
+// ── arranque de datos (con o sin vault) ────────────────────────────────────
+async function arrancarDatos() {
+  const v = await window.termix.vaultEstado();
+  if (v.existe && !v.desbloqueado) {
+    abrirDesbloqueo();
+    return;
+  }
+  await cargarTodo();
+}
+
+async function cargarTodo() {
+  [hosts, snippets] = await Promise.all([
+    window.termix.cargarHosts(),
+    window.termix.snippetsCargar(),
+  ]);
+  hosts = hosts || [];
+  snippets = snippets || [];
+  pintarHosts();
+  pintarSnippets();
+}
+
+// ── vault ──────────────────────────────────────────────────────────────────
+function abrirDesbloqueo() {
+  $("#vault-error").textContent = "";
+  $("#form-vault").reset();
+  $("#dlg-vault").showModal();
+  setTimeout(() => $("#form-vault").elements.clave.focus(), 100);
+}
+
+$("#form-vault").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+  const clave = evento.target.elements.clave.value;
+  const r = await window.termix.vaultDesbloquear(clave);
+  if (!r.ok) {
+    $("#vault-error").textContent = r.error || "No se pudo desbloquear";
+    return;
+  }
+  hosts = r.hosts || [];
+  snippets = r.snippets || [];
+  pintarHosts();
+  pintarSnippets();
+  $("#dlg-vault").close();
+  estado("Vault desbloqueado");
+});
+
+function refrescarConfig() {
+  window.termix.vaultEstado().then((v) => {
+    $("#cfg-sin-vault").hidden = v.existe;
+    $("#cfg-con-vault").hidden = !v.existe;
+    $("#cfg-error").textContent = "";
+    $("#cfg-error2").textContent = "";
+  });
+}
+
+$("#btn-config").addEventListener("click", () => {
+  refrescarConfig();
+  $("#dlg-config").showModal();
+});
+$("#cerrar-config").addEventListener("click", () => $("#dlg-config").close());
+$("#btn-abrir-carpeta").addEventListener("click", () => window.termix.abrirConfig());
+
+$("#btn-vault-crear").addEventListener("click", async () => {
+  const c1 = $("#cfg-clave1").value;
+  const c2 = $("#cfg-clave2").value;
+  if (c1.length < 6) return ($("#cfg-error").textContent = "Usa al menos 6 caracteres");
+  if (c1 !== c2) return ($("#cfg-error").textContent = "Las contraseñas no coinciden");
+  const r = await window.termix.vaultActivar(c1);
+  if (!r.ok) return ($("#cfg-error").textContent = r.error || "No se pudo cifrar");
+  $("#dlg-config").close();
+  estado("Vault cifrado con contraseña maestra");
+});
+
+$("#btn-vault-cambiar").addEventListener("click", async () => {
+  const actual = $("#cfg-actual").value;
+  const nueva = $("#cfg-nueva").value;
+  if (nueva.length < 6) return ($("#cfg-error2").textContent = "La nueva debe tener 6+ caracteres");
+  const r = await window.termix.vaultCambiarClave(actual, nueva);
+  if (!r.ok) return ($("#cfg-error2").textContent = r.error || "Error");
+  $("#dlg-config").close();
+  estado("Contraseña maestra cambiada");
+});
+
+$("#btn-vault-quitar").addEventListener("click", async () => {
+  if (!confirm("¿Quitar el cifrado? Los datos quedarán en claro en tu equipo.")) return;
+  const r = await window.termix.vaultDesactivar($("#cfg-actual").value);
+  if (!r.ok) return ($("#cfg-error2").textContent = r.error || "Error");
+  $("#dlg-config").close();
+  estado("Cifrado desactivado");
+});
 
 // ── hosts ──────────────────────────────────────────────────────────────────
 function pintarHosts() {
@@ -197,7 +280,7 @@ async function importar() {
 
 $("#btn-importar").addEventListener("click", importar);
 $("#hero-importar").addEventListener("click", importar);
-$("#btn-acerca").addEventListener("click", () => $("#dlg-acerca").showModal());
+$("#btn-acerca")?.addEventListener("click", () => $("#dlg-acerca").showModal());
 $("#cerrar-acerca").addEventListener("click", () => $("#dlg-acerca").close());
 
 // ── pestañas ───────────────────────────────────────────────────────────────

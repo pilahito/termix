@@ -1,7 +1,7 @@
 {
   "name": "termix",
   "productName": "Termix",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Cliente SSH de escritorio, open source y en español",
   "main": "src/main.js",
   "license": "MIT",
@@ -10,12 +10,13 @@
     "dev": "./start.sh"
   },
   "devDependencies": {
-    "electron": "^38.0.0"
+    "electron": "^38.0.0",
+    "electron-builder": "^26.18.0"
   },
   "dependencies": {
-    "ssh2": "^1.16.0",
+    "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
-    "@xterm/addon-fit": "^0.10.0"
+    "ssh2": "^1.16.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -27,6 +28,32 @@
   "allowScripts": {
     "cpu-features@0.0.10": true,
     "electron@38.8.6": true,
-    "ssh2@1.17.0": true
+    "ssh2@1.17.0": true,
+    "electron-winstaller@5.4.0": true
+  },
+  "build": {
+    "appId": "io.github.pilahito.termix",
+    "productName": "Termix",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "src/main.js"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Network",
+      "icon": "build/icon.png",
+      "synopsis": "Cliente SSH libre, en español y sin cuentas"
+    },
+    "npmRebuild": false,
+    "electronVersion": "38.0.0"
   }
 }

@@ -11,7 +11,11 @@ Hecho desde cero con Electron + xterm.js + ssh2 — no contiene código de terce
 |---|---|
 | ![SFTP](docs/sftp.png) | ![Túneles](docs/tuneles.png) |
 
-## Qué hace (v0.2)
+| Vault bloqueado | Ajustes |
+|---|---|
+| ![Vault](docs/vault.png) | ![Ajustes](docs/ajustes.png) |
+
+## Qué hace (v0.3)
 
 - Lista de **hosts** con buscador, guardada en tu equipo (`~/.config/termix/hosts.json`).
 - **Importar hosts de `~/.ssh/config`** con un botón (toma HostName, Port, User, IdentityFile).
@@ -22,6 +26,7 @@ Hecho desde cero con Electron + xterm.js + ssh2 — no contiene código de terce
 - **Túneles de puertos** locales (`-L`): `127.0.0.1:8080 → destino:80` desde un diálogo.
 - **Snippets**: comandos guardados que se envían con un clic a la pestaña activa.
 - **Terminal local** (pty real con `script`) sin levantarse de la app.
+- **Vault cifrado**: hosts, contraseñas y snippets con contraseña maestra (scrypt + AES-256-GCM).
 - Interfaz en **español**, tema oscuro, barra de estado y diálogo *Acerca de*.
 - Cero telemetría, cero login.
 
