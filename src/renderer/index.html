@@ -8,66 +8,74 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <aside class="barra">
+  <header class="barra-superior">
     <div class="marca">
       <span class="logo">›_</span>
-      <div class="marca-texto">
-        <strong>Termix</strong>
-        <span>Cliente SSH</span>
+      <strong>Termix</strong>
+    </div>
+    <nav class="pestanas" id="pestanas">
+      <button class="pestana activa" data-vista="inicio"><span class="candado">🔒</span> Vault</button>
+    </nav>
+    <button id="btn-nueva-pestana" class="btn-mas" title="Nueva conexión">+</button>
+    <div class="derecha">
+      <button id="btn-sftp" class="icono" title="Archivos (SFTP)">🗀</button>
+      <button id="btn-tuneles" class="icono" title="Reenvío de puertos">⇄</button>
+      <span class="avatar-usuario" title="david">D</span>
+    </div>
+  </header>
+
+  <div class="cuerpo">
+    <aside class="nav">
+      <button class="item activo" data-vista="inicio"><span>▤</span> Hosts</button>
+      <button class="item" data-vista="snippets"><span>{ }</span> Snippets</button>
+      <button class="item" id="nav-tuneles"><span>⇄</span> Port forwarding</button>
+      <button class="item" id="nav-ajustes"><span>⚙</span> Ajustes</button>
+      <button class="item" id="nav-acerca"><span>◍</span> Acerca de</button>
+      <div class="nav-pie">
+        <button class="item" id="nav-local"><span>▣</span> Terminal local</button>
       </div>
-    </div>
+    </aside>
 
-    <div class="buscador">
-      <span class="lupa">⌕</span>
-      <input id="buscar" type="search" placeholder="Buscar host…" />
-    </div>
-
-    <div class="titulo-seccion">
-      <span>HOSTS</span>
-      <span class="acciones-seccion">
-        <button id="btn-importar" title="Importar de ~/.ssh/config">⇩</button>
-        <button id="btn-nuevo" title="Nueva conexión">+</button>
-      </span>
-    </div>
-    <ul id="lista-hosts"></ul>
-
-    <div class="titulo-seccion">
-      <span>SNIPPETS</span>
-      <span class="acciones-seccion">
-        <button id="btn-snippet-nuevo" title="Nuevo snippet">+</button>
-      </span>
-    </div>
-    <ul id="lista-snippets"></ul>
-
-    <div class="pie">
-      <button id="btn-local" class="enlace">▣ Terminal local</button>
-      <button id="btn-config" class="enlace">⚙ Ajustes</button>
-    </div>
-  </aside>
-
-  <main class="contenido">
-    <header class="cabecera">
-      <div class="pestanas" id="pestanas"></div>
-      <div class="acciones-cabecera">
-        <button id="btn-sftp" class="btn-mas" title="Archivos (SFTP)">🗀</button>
-        <button id="btn-tuneles" class="btn-mas" title="Túneles de puertos">⇄</button>
-        <button id="btn-nueva-pestana" class="btn-mas" title="Nueva conexión">+</button>
-      </div>
-    </header>
-
-    <div class="cuerpo">
-      <div class="terminales" id="terminales">
-        <section class="bienvenida" id="bienvenida">
-          <div class="hero-icono">›_</div>
-          <h1>Cliente SSH moderno</h1>
-          <p>Conecta con tus servidores desde un solo sitio. Sin cuentas, sin nube:<br />
-             todo se queda en tu equipo.</p>
-          <div class="hero-botones">
-            <button id="hero-nuevo" class="boton-principal">Nueva conexión</button>
-            <button id="hero-importar" class="boton-secundario">Importar ~/.ssh/config</button>
+    <main class="contenido">
+      <div class="vista" id="vista-inicio">
+        <div class="barra-vista">
+          <button id="btn-nuevo" class="boton-nuevo">＋ NUEVO HOST <span class="caret">⌄</span></button>
+          <button id="btn-nueva-pestana2" class="boton-suave">▣ TERMINAL</button>
+          <button id="btn-importar" class="boton-suave">⇩ IMPORTAR</button>
+          <div class="espaciador"></div>
+          <div class="buscador">
+            <span class="lupa">⌕</span>
+            <input id="buscar" type="search" placeholder="Buscar hosts…" />
           </div>
-          <p class="atajos">Consejo: pulsa un host de la izquierda o <kbd>Ctrl</kbd>+<kbd>N</kbd></p>
+        </div>
+
+        <section class="seccion" id="seccion-grupos" hidden>
+          <h2>Grupos</h2>
+          <div class="rejilla-grupos" id="rejilla-grupos"></div>
         </section>
+
+        <section class="seccion">
+          <h2 id="titulo-hosts">Hosts</h2>
+          <div class="rejilla-hosts" id="rejilla-hosts"></div>
+          <p class="vacio" id="hosts-vacio" hidden>Aún no hay hosts. Pulsa «NUEVO HOST» o importa tu ~/.ssh/config.</p>
+        </section>
+      </div>
+
+      <div class="vista" id="vista-snippets" hidden>
+        <div class="barra-vista">
+          <button id="btn-snippet-nuevo" class="boton-nuevo">＋ NUEVO SNIPPET</button>
+          <div class="espaciador"></div>
+          <span class="pista">Se envían a la terminal de la pestaña activa.</span>
+        </div>
+        <section class="seccion">
+          <h2>Snippets</h2>
+          <div class="rejilla-snippets" id="rejilla-snippets"></div>
+          <p class="vacio" id="snippets-vacio" hidden>Sin snippets todavía.</p>
+        </section>
+      </div>
+
+      <div class="terminales" id="terminales">
+        <div class="panel-term" id="panel-inicio"></div>
       </div>
 
       <aside class="panel-sftp" id="panel-sftp">
@@ -85,17 +93,17 @@
         <ul id="sftp-lista" class="sftp-lista"></ul>
         <div class="sftp-pie" id="sftp-estado">—</div>
       </aside>
-    </div>
+    </main>
+  </div>
 
-    <footer class="estado">
-      <span id="estado-texto">Listo</span>
-      <span id="estado-host" class="tenue"></span>
-    </footer>
-  </main>
+  <footer class="estado">
+    <span id="estado-texto">Listo</span>
+    <span id="estado-host" class="tenue"></span>
+  </footer>
 
   <dialog id="dlg-host">
     <form method="dialog" id="form-host">
-      <h2 id="dlg-titulo">Nueva conexión</h2>
+      <h2 id="dlg-titulo">Nuevo host</h2>
       <p class="ayuda">Los datos se guardan solo en tu equipo.</p>
       <label>Nombre <input name="nombre" required placeholder="solaris" /></label>
       <div class="fila">
@@ -110,6 +118,10 @@
             <option value="password">Contraseña</option>
           </select>
         </label>
+      </div>
+      <div class="fila">
+        <label class="crece">Grupo <input name="grupo" placeholder="Trabajo" /></label>
+        <label class="crece">Etiquetas <input name="etiquetas" placeholder="ssh, prod" /></label>
       </div>
       <label>Clave privada
         <span class="fila">
@@ -130,9 +142,7 @@
       <h2>Nuevo snippet</h2>
       <p class="ayuda">Se envía al terminal de la pestaña activa.</p>
       <label>Nombre <input name="nombre" required placeholder="Ver logs de nginx" /></label>
-      <label>Comando
-        <textarea name="texto" rows="3" required placeholder="sudo journalctl -u nginx -n 100"></textarea>
-      </label>
+      <label>Comando <textarea name="texto" rows="3" required placeholder="sudo journalctl -u nginx -n 100"></textarea></label>
       <menu>
         <button value="cancelar">Cancelar</button>
         <button id="btn-snippet-guardar" value="guardar" class="boton-principal">Guardar</button>
@@ -142,7 +152,7 @@
 
   <dialog id="dlg-tuneles">
     <div class="tuneles">
-      <h2>Túneles de puertos</h2>
+      <h2>Reenvío de puertos</h2>
       <p class="ayuda">Reenvío local: <code>127.0.0.1:puertoLocal</code> → destino por SSH.</p>
       <ul id="lista-tuneles" class="lista-tuneles"></ul>
       <form id="form-tunel" class="fila">
@@ -197,7 +207,7 @@
   <dialog id="dlg-acerca">
     <div class="acerca">
       <div class="hero-icono pequeno">›_</div>
-      <h2>Termix <span class="version">0.2.0</span></h2>
+      <h2>Termix <span class="version">0.3.0</span></h2>
       <p>Cliente SSH open source, en español y sin cuentas.</p>
       <p class="tenue">Electron + xterm.js + ssh2 · Licencia MIT</p>
       <p><a id="enlace-repo" href="#">github.com/pilahito/termix</a></p>
