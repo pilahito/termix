@@ -125,3 +125,52 @@ npx -y rea-agents@6.7.0 analyze-javascript-application /tmp/termius-ui --json > 
 
 Los resultados completos (52 MB de grafo) no se versionan: este documento resume
 lo observado y cita el identificador de evidencia para quien quiera rehacerlo.
+
+## Evidencia MCP (ejecución real, 22-nov)
+
+REA quedó conectado al harness como servidor MCP (`rea --mcp`, 207 herramientas) y el
+análisis se pidió **por herramientas**, no por CLI:
+
+| Paso | Herramienta MCP | Resultado |
+|---|---|---|
+| 1 | `analyze_javascript_application` (detail: summary) | vista `ev_3a0936de…` sobre el registro completo `ev_9a08894f…` (`retention: complete-record`) |
+| 2 | `inspect_analysis_view` (kind: summary) | 738/759 nodos examinados, `coverage: complete-within-view` |
+| 3 | `inspect_analysis_view` (javascript-facts, 2.228 filas) | vista `ev_bff82fa6…`, p. ej. imports dinámicos |
+| 4 | `inspect_analysis_view` (javascript-chunk) | vista `ev_b77c940f…`, 5 chunks `webpack-bootstrap` |
+
+### Lo que sí dice la evidencia
+
+- **5 chunks** de arranque webpack (`bootstrap@427583`, `@634161`, `@686482`, `@780483`, `@714943`)
+  con rangos de línea exactos en `ui-process-00678e69.js`.
+- **2.228 hechos** de aplicación; la primera página son **imports dinámicos** que
+  revelan módulos de autocompletado cargados bajo demanda, uno por herramienta:
+
+  `mongoimport`, `osascript`, `micro`, `bazel`, `flutter`, `stow`, `rake`, `zellij`,
+  `iex`, `base32`, `task`, `pip3`, `cdk8s`, `whereis`, `df`, `gt`, `pmset`, `rscript`…
+
+  → confirma el rasgo «Autocomplete (726 menciones)»: Termius mantiene **especificaciones
+  por comando** y las carga de forma perezosa.
+- **Límites del grafo semántico declarados**: se omitieron 28.131 llamadas dinámicas,
+  31.721 flujos de objeto ambiguos, 1.949 propiedades dinámicas y 34 temporizadores;
+  20.000 incógnitas retenidas. Nada de eso se puede leer como ausencia.
+- **Fronteras Electron en este bundle**: 0 ventanas, 0 preloads, 0 canales IPC. El
+  puente vive en el proceso principal, que REA marcó como *skipped* → **IPC desconocido**.
+
+### Cómo se pidió (reproducible)
+
+```jsonc
+// 1
+{"name":"analyze_javascript_application",
+ "arguments":{"input_path":"/tmp/termius-ui","detail":"summary"}}
+// 2-4, con el evidence_id devuelto
+{"name":"inspect_analysis_view",
+ "arguments":{"source":{"kind":"retained-evidence","evidence_id":"ev_9a08894f…"},
+              "view":{"kind":"javascript-facts","where":{"kinds":["javascript-chunk"]},
+                      "property_keys":["specifier","resolution_status"],"limit":12}}}
+```
+
+## Siguiente paso derivado de la evidencia
+
+El hallazgo accionable es el **autocompletado por herramienta**: Termix puede cargar
+especificaciones propias (JSON) para `docker`, `git`, `systemctl`, `journalctl`, `apt`,
+`pacman` y ofrecer sugerencias en el terminal, sin reutilizar nada del original.
