@@ -84,10 +84,42 @@ snippets, reenvío de puertos, keychain, known hosts, logs, serial, telnet y mos
 | Sincronización en la nube | ✅ | ❌ **por diseño** (sin nube) |
 | Reenvío remoto / dinámico (SOCKS) | ✅ | ❌ pendiente |
 
+## Sesión MCP (no solo CLI)
+
+El análisis se hizo contra el **servidor MCP de REA** (`rea --mcp`, versión 6.7.0),
+no solo con el comando de un solo uso:
+
+```
+initialize → serverInfo {name: "rea", version: "6.7.0"}
+tools/list → 207 herramientas
+tools/call analyze_javascript_application  → resource_constraint (respuesta > presupuesto stdio)
+                                            pero el registro queda RETENIDO
+tools/call get_evidence_bundle (summary)   → 1 registro, retention: complete-record
+tools/call inspect_analysis_view            → página de módulos y resumen
+```
+
+- Registro retenido: `ev_9a08894f3fe00a79c543f20c71124c605b3dd9c2c74d932c3eec88bd1003beb6`
+  (`retention: complete-record`, `authority: shipped-artifact`, `confidence: derived`)
+- `inspect_analysis_view` → `coverage: {status: "page", examined: 10, total: 738}`
+- Vistas `sections`, `symbols`, `javascript-facts`, facetas `linkage`/`mitigations`
+  y colecciones `endpoints`/`unknown` responden `invalid_request` para este
+  proveedor JavaScript → **desconocido**, no ausencia.
+
+### Limitación honesta
+
+El bundle recupera **738 módulos** pero la página de módulos solo expone
+`node_id` y `path` (todos dentro de `ui-process-00678e69.js`): los nombres de
+módulo originales se perdieron en el empaquetado. Por eso el inventario de
+rasgos de arriba se apoya en literales de la interfaz (recuentos) y no en
+nombres de módulo.
+
 ## Cómo reproducirlo
 
 ```bash
-# árbol extraído del .deb
+# servidor MCP por stdio (lo que se usó aquí)
+npx -y rea-agents@6.7.0 --mcp
+
+# o análisis de un solo uso
 npx -y rea-agents@6.7.0 analyze-javascript-application /tmp/termius-ui --json > rea.json
 ```
 
