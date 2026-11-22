@@ -252,6 +252,51 @@ function ipcSnippets() {
   try { return JSON.parse(fs.readFileSync(SNIPPETS_FILE, "utf-8")); } catch { return []; }
 }
 
+// ── inventario local: claves, known_hosts y registro de actividad ──────────
+const SSH_DIR = path.join(os.homedir(), ".ssh");
+const LOG_FILE = path.join(CONFIG_DIR, "log.json");
+
+ipcMain.handle("keys:list", () => {
+  try {
+    return fs.readdirSync(SSH_DIR)
+      .filter((f) => f.endsWith(".pub"))
+      .map((f) => {
+        const ruta = path.join(SSH_DIR, f);
+        let contenido = "";
+        try { contenido = fs.readFileSync(ruta, "utf-8").trim(); } catch {}
+        const [tipo, , comentario] = contenido.split(" ");
+        return { nombre: f.replace(/\.pub$/, ""), tipo: tipo || "?", comentario: comentario || "", ruta };
+      });
+  } catch { return []; }
+});
+
+ipcMain.handle("knownhosts:list", () => {
+  const ruta = path.join(SSH_DIR, "known_hosts");
+  if (!fs.existsSync(ruta)) return [];
+  const salida = [];
+  for (const linea of fs.readFileSync(ruta, "utf-8").split("\n")) {
+    const limpia = linea.trim();
+    if (!limpia || limpia.startsWith("#") || limpia.startsWith("|")) continue;
+    const [hosts, tipo] = limpia.split(/\s+/);
+    for (const host of (hosts || "").split(",")) {
+      if (host) salida.push({ host, tipo: tipo || "?" });
+    }
+  }
+  return salida;
+});
+
+ipcMain.handle("log:load", () => {
+  try { return JSON.parse(fs.readFileSync(LOG_FILE, "utf-8")); } catch { return []; }
+});
+ipcMain.handle("log:append", (_e, entrada) => {
+  let lista = [];
+  try { lista = JSON.parse(fs.readFileSync(LOG_FILE, "utf-8")); } catch {}
+  lista.unshift({ ...entrada, hora: new Date().toISOString() });
+  fs.mkdirSync(CONFIG_DIR, { recursive: true });
+  fs.writeFileSync(LOG_FILE, JSON.stringify(lista.slice(0, 300), null, 2));
+  return true;
+});
+
 // ── SFTP ───────────────────────────────────────────────────────────────────
 function sesionSFTP(id) {
   const sesion = sesiones.get(id);

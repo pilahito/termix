@@ -29,6 +29,9 @@
       <button class="item activo" data-vista="inicio"><span>▤</span> Hosts</button>
       <button class="item" data-vista="snippets"><span>{ }</span> Snippets</button>
       <button class="item" id="nav-tuneles"><span>⇄</span> Port forwarding</button>
+      <button class="item" data-vista="keychain"><span>⚿</span> Keychain</button>
+      <button class="item" data-vista="known"><span>◈</span> Known hosts</button>
+      <button class="item" data-vista="logs"><span>≡</span> Logs</button>
       <button class="item" id="nav-ajustes"><span>⚙</span> Ajustes</button>
       <button class="item" id="nav-acerca"><span>◍</span> Acerca de</button>
       <div class="nav-pie">
@@ -71,6 +74,33 @@
           <h2>Snippets</h2>
           <div class="rejilla-snippets" id="rejilla-snippets"></div>
           <p class="vacio" id="snippets-vacio" hidden>Sin snippets todavía.</p>
+        </section>
+      </div>
+
+      <div class="vista" id="vista-keychain" hidden>
+        <section class="seccion">
+          <h2>Keychain · claves SSH</h2>
+          <p class="pista">Claves públicas de <code>~/.ssh</code>. Las privadas nunca salen del disco.</p>
+          <div class="rejilla-snippets" id="rejilla-claves"></div>
+          <p class="vacio" id="claves-vacio" hidden>No encontré claves públicas en ~/.ssh.</p>
+        </section>
+      </div>
+
+      <div class="vista" id="vista-known" hidden>
+        <section class="seccion">
+          <h2>Known hosts</h2>
+          <p class="pista">Entradas de <code>~/.ssh/known_hosts</code> (los hosts hasheados no se pueden mostrar).</p>
+          <div class="rejilla-snippets" id="rejilla-known"></div>
+          <p class="vacio" id="known-vacio" hidden>Sin entradas.</p>
+        </section>
+      </div>
+
+      <div class="vista" id="vista-logs" hidden>
+        <section class="seccion">
+          <h2>Registro de actividad</h2>
+          <p class="pista">Solo en tu equipo, en <code>~/.config/termix/log.json</code>.</p>
+          <div class="rejilla-snippets" id="rejilla-logs"></div>
+          <p class="vacio" id="logs-vacio" hidden>Sin actividad todavía.</p>
         </section>
       </div>
 

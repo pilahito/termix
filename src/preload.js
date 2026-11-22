@@ -44,6 +44,12 @@ contextBridge.exposeInMainWorld("termix", {
   vaultCambiarClave: (actual, nueva) => ipcRenderer.invoke("vault:cambiarClave", actual, nueva),
   vaultBloquear: () => ipcRenderer.invoke("vault:bloquear"),
 
+  // inventario local
+  listarClaves: () => ipcRenderer.invoke("keys:list"),
+  listarKnownHosts: () => ipcRenderer.invoke("knownhosts:list"),
+  cargarLog: () => ipcRenderer.invoke("log:load"),
+  anotarLog: (entrada) => ipcRenderer.invoke("log:append", entrada),
+
   // varios
   elegirClave: () => ipcRenderer.invoke("dialog:key"),
   abrirConfig: () => ipcRenderer.invoke("shell:abrirConfig"),

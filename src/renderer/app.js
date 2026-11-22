@@ -121,10 +121,16 @@ function mostrarVista(nombre) {
   vista = nombre;
   $("#vista-inicio").hidden = nombre !== "inicio";
   $("#vista-snippets").hidden = nombre !== "snippets";
+  $("#vista-keychain").hidden = nombre !== "keychain";
+  $("#vista-known").hidden = nombre !== "known";
+  $("#vista-logs").hidden = nombre !== "logs";
   $("#terminales").style.display = nombre === "terminal" ? "block" : "none";
   $$(".pestana[data-vista]").forEach((t) => t.classList.toggle("activa", t.dataset.vista === nombre));
   if (nombre === "snippets") pintarSnippets();
   if (nombre === "inicio") pintarHosts();
+  if (nombre === "keychain") pintarClaves();
+  if (nombre === "known") pintarKnownHosts();
+  if (nombre === "logs") pintarLogs();
 }
 
 function mostrarTerminal() {
@@ -230,6 +236,65 @@ function pintarSnippets() {
     rejilla.append(tarjeta);
   }
   $("#snippets-vacio").hidden = snippets.length > 0;
+}
+
+// ── keychain, known hosts y logs ───────────────────────────────────────────
+async function pintarClaves() {
+  const rejilla = $("#rejilla-claves");
+  const claves = await window.termix.listarClaves();
+  rejilla.innerHTML = "";
+  for (const k of claves) {
+    const tarjeta = document.createElement("div");
+    tarjeta.className = "tarjeta-host";
+    tarjeta.innerHTML = `
+      <span class="icono" style="background:${colorDe(k.nombre)}">⚿</span>
+      <span class="texto">
+        <strong>${esc(k.nombre)}</strong>
+        <small>${esc(k.tipo)} · ${esc(k.comentario || "sin comentario")}</small>
+      </span>`;
+    rejilla.append(tarjeta);
+  }
+  $("#claves-vacio").hidden = claves.length > 0;
+}
+
+async function pintarKnownHosts() {
+  const rejilla = $("#rejilla-known");
+  const entradas = await window.termix.listarKnownHosts();
+  rejilla.innerHTML = "";
+  for (const e of entradas.slice(0, 200)) {
+    const tarjeta = document.createElement("div");
+    tarjeta.className = "tarjeta-host";
+    tarjeta.innerHTML = `
+      <span class="icono" style="background:${colorDe(e.host)}">◈</span>
+      <span class="texto">
+        <strong>${esc(e.host)}</strong>
+        <small>${esc(e.tipo)}</small>
+      </span>`;
+    rejilla.append(tarjeta);
+  }
+  $("#known-vacio").hidden = entradas.length > 0;
+}
+
+async function pintarLogs() {
+  const rejilla = $("#rejilla-logs");
+  const lista = await window.termix.cargarLog();
+  rejilla.innerHTML = "";
+  for (const l of lista.slice(0, 200)) {
+    const tarjeta = document.createElement("div");
+    tarjeta.className = "tarjeta-host";
+    tarjeta.innerHTML = `
+      <span class="icono" style="background:${colorDe(l.accion || "log")}">≡</span>
+      <span class="texto">
+        <strong>${esc(l.accion)}</strong>
+        <small>${esc(l.detalle || "")} · ${esc(new Date(l.hora).toLocaleString("es-ES"))}</small>
+      </span>`;
+    rejilla.append(tarjeta);
+  }
+  $("#logs-vacio").hidden = lista.length > 0;
+}
+
+function anotar(accion, detalle) {
+  window.termix.anotarLog({ accion, detalle: detalle || "" });
 }
 
 // ── formularios ────────────────────────────────────────────────────────────
@@ -385,8 +450,9 @@ async function conectar(host) {
   if (!r.ok) {
     sesion.pestana.querySelector(".punto")?.classList.add("malo");
     sesion.term.writeln(`\x1b[31mError: ${r.error}\x1b[0m`);
+    anotar("SSH error", r.error);
     estado("Error de conexión", host.nombre);
-  } else estado("Conectado", `${host.user}@${host.host}`);
+  } else { estado("Conectado", `${host.user}@${host.host}`); anotar("SSH conectado", `${host.user}@${host.host}:${host.port || 22}`); }
 }
 
 async function abrirTerminalLocal() {
