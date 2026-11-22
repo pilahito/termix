@@ -286,3 +286,16 @@ textarea:focus { border-color: var(--acento); }
 .config h3 { margin: 6px 0 0; font-size: 14px; }
 .config hr { border: 0; border-top: 1px solid var(--borde); margin: 8px 0; }
 .error { color: var(--rojo); font-size: 12px; min-height: 15px; margin: 0; }
+
+/* filas de snippets: recortar texto y botón de borrar discreto */
+#lista-snippets li .nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#lista-snippets li .datos { min-width: 0; }
+#lista-snippets li .destino {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+#lista-snippets li .borrar,
+#lista-snippets li .borrar:focus {
+  border: 0; background: none; box-shadow: none; color: var(--tenue);
+  font-size: 14px; cursor: pointer; padding: 0 4px;
+}
+#lista-snippets li .borrar:hover { color: var(--rojo); }
